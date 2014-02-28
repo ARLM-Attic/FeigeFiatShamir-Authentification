@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alice", "Alice\Alice.csproj", "{D6530DAE-9BCE-4CF3-83E0-AC747A5A4751}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bob", "Bob\Bob.csproj", "{20F8CE1F-B7C1-4A7D-9661-A7205563E300}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D6530DAE-9BCE-4CF3-83E0-AC747A5A4751}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6530DAE-9BCE-4CF3-83E0-AC747A5A4751}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6530DAE-9BCE-4CF3-83E0-AC747A5A4751}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6530DAE-9BCE-4CF3-83E0-AC747A5A4751}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20F8CE1F-B7C1-4A7D-9661-A7205563E300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20F8CE1F-B7C1-4A7D-9661-A7205563E300}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20F8CE1F-B7C1-4A7D-9661-A7205563E300}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20F8CE1F-B7C1-4A7D-9661-A7205563E300}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
