@@ -3,3 +3,9 @@ C:\Users\Christoph\Desktop\FeigeFiatShamir-Authentification\Bob\bin\Debug\Bob.ex
 C:\Users\Christoph\Desktop\FeigeFiatShamir-Authentification\Bob\bin\Debug\Bob.pdb
 C:\Users\Christoph\Desktop\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.exe
 C:\Users\Christoph\Desktop\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.pdb
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\bin\Debug\Bob.exe.config
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\bin\Debug\Bob.exe
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\bin\Debug\Bob.pdb
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.csprojResolveAssemblyReference.cache
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.exe
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.pdb

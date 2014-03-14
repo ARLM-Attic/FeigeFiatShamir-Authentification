@@ -11,9 +11,10 @@ namespace Bob
 {
     class Program
     {
-        static Socket s;
+        static Socket socket;
         static Random r;
         static BigInteger p, q, n;
+        static BigInteger[] s, w;
         static byte c;
         /* constants */
         const int k = 8;
@@ -24,7 +25,7 @@ namespace Bob
             Console.Title = "FeigeFiatShamir-Authentification";
             Console.WriteLine("Welcome to the FeigeFiatShamir-Authentification Service!\n");
 
-            s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             r = new Random();
 
             Keyscheduling(ref p, ref q, ref c);
@@ -61,6 +62,72 @@ namespace Bob
             Console.WriteLine("p = " + p);
             Console.WriteLine("q = " + q);
             Console.WriteLine("n = " + n);
+
+            /* calculating elements of s */
+            s = new BigInteger[k];
+            int length = n.ToByteArray().Length;            
+            byte[] tmp = new byte[length];
+
+            for (int i = 0; i < k; i++)
+            {
+                r.NextBytes(tmp);
+                s[i] = new BigInteger(tmp);                           
+                s[i] = BigInteger.Abs(s[i]) % n;
+            }
+
+            /* calculating elements of w */
+            w = new BigInteger[k];            
+
+            for (int i = 0; i < k; i++)
+            { 
+                if((c & (1 << i)) != 0)
+                {
+                    w[i] = -1;
+                    while (w[i] == -1)
+                        w[i] = GetInverseElement(s[i], n);
+                }
+
+                else
+                {
+                    w[i] = 1 / BigInteger.ModPow(s[i], 2, n);
+                }                
+            }
+        }
+
+        private static BigInteger GetInverseElement(BigInteger s, BigInteger n)
+        {
+            /* s muss neu gewählt werden, wenn der ggT ungleich 1 ist!! */             
+            /* erweiteter Euklidischer Algorithmus --> Koeffizient bei s ist das inverse Element, *
+             * weil durch das mod n der Teil mit n wegfällt */
+
+
+            /* error: ggT has to be 1 */
+            return -1;
+        }
+
+        private static void Euklid(BigInteger a, BigInteger b, out BigInteger ggT, out BigInteger x, out BigInteger y)
+        {
+            if (a % b == 0)
+            {
+                x = 0;
+                y = 1;
+                ggT = b * y;
+                return;
+            }
+
+            //RestKo wird nur benötigt, weil "Math.DivRem" eine Ouputvariable verlangt
+            BigInteger dX, dY, RestKo;
+
+            //Speichern des Rests in die Outputvariablen, wobei "i" nur als Platzhalter
+            //dient, um der Syntax der Funktion zu entsprechen
+            Euklid(b, a % b, out ggT, out dX, out dY);
+
+            x = dY;
+            //Berechnen des zweiten Koeffizienten (DivRem berechnet den Quotienten zweier Zahlen)
+            y = dX - x * BigInteger.DivRem(a, b, out RestKo);
+
+            //zur Kontrolle nach jedem Durchlauf
+            ggT = a * x + b * y;
         }
 
         private static bool BlumNumber(BigInteger number)
