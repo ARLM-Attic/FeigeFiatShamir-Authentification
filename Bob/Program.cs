@@ -28,12 +28,12 @@ namespace Bob
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             r = new Random();
 
-            Keyscheduling(ref p, ref q, ref c);
+            InitValuesForIdentification(out p, out q, out c);
 
             Console.ReadLine();
         }
 
-        private static void Keyscheduling(ref BigInteger p, ref BigInteger q, ref byte c)
+        private static void InitValuesForIdentification(out BigInteger p, out BigInteger q, out byte c)
         {
             byte[] buffer = new byte[sizeof(UInt64)];
 
