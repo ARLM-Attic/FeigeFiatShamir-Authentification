@@ -63,46 +63,50 @@ namespace Bob
             Console.WriteLine("q = " + q);
             Console.WriteLine("n = " + n);
 
-            /* calculating elements of s */
+            /* calculating elements of s and w */
             s = new BigInteger[k];
+            w = new BigInteger[k];   
+
             int length = n.ToByteArray().Length;            
             byte[] tmp = new byte[length];
+            BigInteger invElement = 0;
 
             for (int i = 0; i < k; i++)
             {
-                r.NextBytes(tmp);
-                s[i] = new BigInteger(tmp);                           
-                s[i] = BigInteger.Abs(s[i]) % n;
-            }
-
-            /* calculating elements of w */
-            w = new BigInteger[k];            
-
-            for (int i = 0; i < k; i++)
-            { 
-                if((c & (1 << i)) != 0)
+                /* searching for an inverse element */
+                while (invElement == 0)
                 {
-                    w[i] = -1;
-                    while (w[i] == -1)
-                        w[i] = GetInverseElement(s[i], n);
+                    r.NextBytes(tmp);
+                    s[i] = new BigInteger(tmp);
+                    s[i] = BigInteger.Abs(s[i]) % n;
+
+                    invElement = GetInverseElement(n, s[i]);
+                }
+
+                if ((c & (1 << i)) != 0)
+                {
+                    /* w[i] = ... */
                 }
 
                 else
                 {
-                    w[i] = 1 / BigInteger.ModPow(s[i], 2, n);
-                }                
-            }
+                    /* w[i] = ... */
+                }   
+            }                  
         }
 
-        private static BigInteger GetInverseElement(BigInteger s, BigInteger n)
+        private static BigInteger GetInverseElement(BigInteger n, BigInteger s)
         {
-            /* s muss neu gewählt werden, wenn der ggT ungleich 1 ist!! */             
-            /* erweiteter Euklidischer Algorithmus --> Koeffizient bei s ist das inverse Element, *
-             * weil durch das mod n der Teil mit n wegfällt */
+            BigInteger ggT, x, y;
 
+            Euklid(n, s, out ggT, out x, out y);
 
             /* error: ggT has to be 1 */
-            return -1;
+            if(ggT != 1)                
+                return 0;
+
+            /* y is our inverse element, because (y * s) mod n equals 1 */
+            return y;
         }
 
         private static void Euklid(BigInteger a, BigInteger b, out BigInteger ggT, out BigInteger x, out BigInteger y)
@@ -115,18 +119,16 @@ namespace Bob
                 return;
             }
 
-            //RestKo wird nur benötigt, weil "Math.DivRem" eine Ouputvariable verlangt
-            BigInteger dX, dY, RestKo;
-
-            //Speichern des Rests in die Outputvariablen, wobei "i" nur als Platzhalter
-            //dient, um der Syntax der Funktion zu entsprechen
+            BigInteger dX, dY, remainder;
+            /* repeatedly call the function till a % b equals 0 */ 
             Euklid(b, a % b, out ggT, out dX, out dY);
 
+            /* dY is our first coefficient */
             x = dY;
-            //Berechnen des zweiten Koeffizienten (DivRem berechnet den Quotienten zweier Zahlen)
-            y = dX - x * BigInteger.DivRem(a, b, out RestKo);
+            /* calculating the second coefficient */
+            y = dX - x * BigInteger.DivRem(a, b, out remainder);
 
-            //zur Kontrolle nach jedem Durchlauf
+            /* updating ggT */
             ggT = a * x + b * y;
         }
 
