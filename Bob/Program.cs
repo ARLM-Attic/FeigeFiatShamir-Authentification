@@ -12,10 +12,11 @@ namespace Bob
     class Program
     {
         static Socket socket;
+        static IPEndPoint endp;
         static Random r;
-        static BigInteger p, q, n;
-        static BigInteger[] s, w;
-        static byte c;
+        static BigInteger n;
+        static BigInteger[] w;
+        static int id;
         /* constants */
         const int k = 8;
         const int t = 3;
@@ -24,17 +25,40 @@ namespace Bob
         {
             Console.Title = "FeigeFiatShamir-Authentification";
             Console.WriteLine("Welcome to the FeigeFiatShamir-Authentification Service!\n");
-
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            
             r = new Random();
 
-            InitValuesForIdentification(out p, out q, out c);
+            InitValuesForIdentification(out n, out id, out w, k, t);
+
+            /* Send that shit to verification center */
+            socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+            bool validIP = false;
+            while (!validIP)
+            {
+                Console.Write("\nEnter IP address of verification center: ");
+                try
+                {
+                    endp = new IPEndPoint(IPAddress.Parse(Console.ReadLine()), 5555);
+                    validIP = true;
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Invalid IP address");
+                }
+            }
+
+            socket.SendTo(Encoding.Default.GetBytes("Test"), endp);
+            Console.WriteLine("Waiting for verification...");
 
             Console.ReadLine();
         }
 
-        private static void InitValuesForIdentification(out BigInteger p, out BigInteger q, out byte c)
+        private static void InitValuesForIdentification(out BigInteger n, out int id, out BigInteger[] w, int k, int t)
         {
+            BigInteger p, q;
+            BigInteger[] s;
+            byte c;
             byte[] buffer = new byte[sizeof(UInt64)];
 
             /* once for p */
@@ -61,7 +85,7 @@ namespace Bob
 
             Console.WriteLine("p = " + p);
             Console.WriteLine("q = " + q);
-            Console.WriteLine("n = " + n);
+            Console.WriteLine("n = " + n + "\n");
 
             /* calculating elements of s and w */
             s = new BigInteger[k];
@@ -69,30 +93,32 @@ namespace Bob
 
             int length = n.ToByteArray().Length;            
             byte[] tmp = new byte[length];
-            BigInteger invElement = 0;
+            BigInteger invElement;
 
             for (int i = 0; i < k; i++)
             {
                 /* searching for an inverse element */
+                invElement = 0;
+
                 while (invElement == 0)
                 {
                     r.NextBytes(tmp);
                     s[i] = new BigInteger(tmp);
                     s[i] = BigInteger.Abs(s[i]) % n;
 
-                    invElement = GetInverseElement(n, s[i]);
+                    invElement = GetInverseElement(n, (s[i] << 2) % n);
                 }
 
                 if ((c & (1 << i)) != 0)
-                {
-                    /* w[i] = ... */
-                }
+                    w[i] = BigInteger.Pow(-1, i) * s[i];
 
                 else
-                {
-                    /* w[i] = ... */
-                }   
-            }                  
+                    w[i] = s[i];
+
+                Console.WriteLine("w[" + i + "]= " + w[i]);
+            }
+
+            id = r.Next();
         }
 
         private static BigInteger GetInverseElement(BigInteger n, BigInteger s)

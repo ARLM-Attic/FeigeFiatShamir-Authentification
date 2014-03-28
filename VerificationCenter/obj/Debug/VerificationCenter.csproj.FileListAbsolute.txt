@@ -1,0 +1,6 @@
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\VerificationCenter\bin\Debug\VerificationCenter.exe.config
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\VerificationCenter\bin\Debug\VerificationCenter.exe
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\VerificationCenter\bin\Debug\VerificationCenter.pdb
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\VerificationCenter\obj\Debug\VerificationCenter.exe
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\VerificationCenter\obj\Debug\VerificationCenter.pdb
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\VerificationCenter\obj\Debug\VerificationCenter.csprojResolveAssemblyReference.cache
