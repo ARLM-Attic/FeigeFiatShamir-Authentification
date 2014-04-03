@@ -16,7 +16,7 @@ namespace Alice
 
         static void Main(string[] args)
         {
-            Console.Title = "FeigeFiatShamir-Authentification";
+            Console.Title = "Alice";
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             /* listen on port 5555 */
             endp = new IPEndPoint(IPAddress.Any, 5555);

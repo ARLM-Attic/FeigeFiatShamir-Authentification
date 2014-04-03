@@ -8,6 +8,9 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.Serialization;
+using System.Xml.Serialization;
+using System.IO;
 
 namespace VerificationCenter
 {
@@ -16,18 +19,23 @@ namespace VerificationCenter
         static Socket socket;
         static Thread thread;
         static Data data;
-        static Random r;
+        static XmlSerializer serializer;
+        static MemoryStream stream;
+        static Random random;
+        const int PORT = 5555;
+        const int k = 8;
+        const int t = 3;
 
         static void Main(string[] args)
         {
             Console.Title = "Verification Center";
 
-           
+            random = new Random();
             data = InitValues();
 
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            socket.Bind(new IPEndPoint(IPAddress.Any, 5555));
-            thread = new Thread(Receive);
+            socket.Bind(new IPEndPoint(IPAddress.Any, PORT));
+            thread = new Thread(ReceiveRequests);
             thread.Start();
 
             Console.ReadLine();
@@ -37,14 +45,11 @@ namespace VerificationCenter
         {
             BigInteger p, q, n;
             byte[] buffer = new byte[sizeof(UInt64)];
-            /* constants */
-            const int k = 8;
-            const int t = 3;
 
             /* once for p */
             do
             {
-                r.NextBytes(buffer);
+                random.NextBytes(buffer);
                 p = BitConverter.ToUInt64(buffer, 0);
             }
             while (!MillerRabin(p) || !BlumNumber(p));
@@ -52,29 +57,34 @@ namespace VerificationCenter
             /* once for q */
             do
             {
-                r.NextBytes(buffer);
+                random.NextBytes(buffer);
                 q = BitConverter.ToUInt64(buffer, 0);
             }
             while (!MillerRabin(q) || !BlumNumber(q));
 
             /* calculating n */
             n = p * q;
-            return new Data(0, n, null, k, t);
+            return new Data { id = 0, k = k, n = n, t = t, w = null };
         }
 
-        static void Receive()
+        static void ReceiveRequests()
         {
             Console.WriteLine("Waiting for requests...\n");
 
             while (true)
             {
                 EndPoint endp = new IPEndPoint(IPAddress.Any, 0);
-                byte[] buffer = new byte[1024];
-                int anz = socket.ReceiveFrom(buffer, 1024, SocketFlags.None, ref endp);
-                IPEndPoint ep = (IPEndPoint) endp;
-                Console.WriteLine(ep.Address + ": Requested verification");
 
-                /* check if valid struct (yet to be written) */
+                /* check if valid Data object */
+                serializer = new XmlSerializer(typeof(Data));
+                byte[] buffer = new byte[1024];
+                socket.ReceiveFrom(buffer, ref endp);
+                stream = new MemoryStream(buffer);
+                Data request = (Data)serializer.Deserialize(stream);
+                stream.Close();
+
+                IPEndPoint ep = (IPEndPoint)endp;
+                Console.WriteLine(ep.Address + ": Requested verification");
             }
         }
 
@@ -122,46 +132,13 @@ namespace VerificationCenter
         }
     }
 
-    class Data
+    [Serializable]
+    public class Data
     {
-        private int id;
-        private BigInteger n;
-        private BigInteger[] w;
-        private int k;
-        private int t;
-
-        public Data(int id, BigInteger n, BigInteger[] w, int k, int t)
-        {
-            this.id = id;
-            this.n = n;
-            this.w = w;
-            this.k = k;
-            this.t = t;
-        }
-
-        public int Get_id()
-        {
-            return id;
-        }
-
-        public BigInteger Get_n()
-        {
-            return n;
-        }
-
-        public BigInteger[] Get_w()
-        {
-            return w;
-        }
-
-        public int Get_k()
-        {
-            return k;
-        }
-
-        public int Get_t()
-        {
-            return t;
-        }
+        public int id { get; set; }
+        public BigInteger n { get; set; }
+        public BigInteger[] w { get; set; }
+        public int k { get; set; }
+        public int t { get; set; }
     }
 }
