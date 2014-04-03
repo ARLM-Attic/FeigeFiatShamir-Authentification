@@ -19,6 +19,7 @@ namespace VerificationCenter
         static Socket socket;
         static Thread thread;
         static Data data;
+        static List<Data> users;
         static XmlSerializer serializer;
         static MemoryStream stream;
         static Random random;
@@ -84,7 +85,32 @@ namespace VerificationCenter
                 stream.Close();
 
                 IPEndPoint ep = (IPEndPoint)endp;
-                Console.WriteLine(ep.Address + ": Requested verification");
+                /* requested variables (n, k and t) */
+                if (request.id == 0)
+                {
+                    /* serialize data object (has the variables in it) */
+                    serializer = new XmlSerializer(typeof(Data));
+                    stream = new MemoryStream();
+                    serializer.Serialize(stream, data);
+                    /* send variables */
+                    socket.SendTo(stream.ToArray(), endp);
+                    stream.Close();
+                    Console.WriteLine(ep.Address + ": Requested variables");
+                }
+                /* already has variables and has now sent the w's */
+                else
+                {
+                    users.Add(request);
+                    Console.WriteLine(ep.Address + ": Requested verification");
+
+                    /* Acknowledgement: send same package back */
+                    serializer = new XmlSerializer(typeof(Data));
+                    stream = new MemoryStream();
+                    serializer.Serialize(stream, request);
+                    /* send ACK */
+                    socket.SendTo(stream.ToArray(), endp);
+                    stream.Close();
+                }                
             }
         }
 
@@ -136,6 +162,8 @@ namespace VerificationCenter
     public class Data
     {
         public int id { get; set; }
+
+        /* BigInteger lassen sich ohne Vorkehrungen nicht serialisieren (kommt immer 0 raus) --> Möglichkeit wäre über Strings... */
         public BigInteger n { get; set; }
         public BigInteger[] w { get; set; }
         public int k { get; set; }

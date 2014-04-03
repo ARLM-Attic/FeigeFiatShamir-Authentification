@@ -31,6 +31,7 @@ namespace Bob
         XmlSerializer serializer;
         MemoryStream stream;
         int id;
+        BigInteger[] w;
         const int PORT = 5555;
 
         public MainWindow()
@@ -54,22 +55,29 @@ namespace Bob
             random = new Random();
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             endp = new IPEndPoint(address, PORT);
-
-            /* if the id is set to 0, the authentification server knows its a request */
-            data = new Data { id = 0, k = 0, n = 0, t = 0, w = null };
-            /* serialize the data object */
+     
+            /* setup the request */
             serializer = new XmlSerializer(typeof(Data));
             stream = new MemoryStream();
-            serializer.Serialize(stream, data);
+            /* if the id is set to 0, the authentification server knows its a request */
+            serializer.Serialize(stream, new Data { id = 0, k = 1, n = 2, t = 3, w = null });
 
             /* send request */
             socket.SendTo(stream.ToArray(), endp);
             stream.Close();
 
             /* get response */
-            stream = new MemoryStream(socket.ReceiveFrom(new byte[1024], ref endp));
-            data = (Data)serializer.Deserialize(stream);
+            byte[] buffer = new byte[1024];
+            socket.ReceiveFrom(buffer, ref endp);
+            stream = new MemoryStream(buffer);
+            Data response = (Data)serializer.Deserialize(stream);
             stream.Close();
+
+            /* if received package is ok... */
+            btn_send.IsEnabled = false;
+
+            /* send the calculated w's */
+            InitValuesForIdentification(response.n, out id, out w, response.k, response.t);
         }
 
         private void InitValuesForIdentification(BigInteger n, out int id, out BigInteger[] w, int k, int t)
