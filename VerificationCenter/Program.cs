@@ -36,7 +36,9 @@ namespace VerificationCenter
 
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             socket.Bind(new IPEndPoint(IPAddress.Any, PORT));
+
             thread = new Thread(ReceiveRequests);
+            thread.IsBackground = true;
             thread.Start();
 
             Console.ReadLine();
@@ -85,7 +87,7 @@ namespace VerificationCenter
                 Data request = (Data)serializer.Deserialize(stream);
                 stream.Close();
 
-                IPEndPoint ep = (IPEndPoint)endp;
+                IPEndPoint ipendp = (IPEndPoint)endp;
                 /* requested variables (n, k and t) */
                 if (request.id == 0)
                 {
@@ -96,7 +98,7 @@ namespace VerificationCenter
                     /* send variables */
                     socket.SendTo(stream.ToArray(), endp);
                     stream.Close();
-                    Console.WriteLine(ep.Address + ": Requested variables");
+                    Console.WriteLine(ipendp.Address + ": Requested variables");
                 }
                 /* already has variables and has now sent the w's */
                 else
@@ -105,7 +107,7 @@ namespace VerificationCenter
                     if (request.w != null)
                     {
                         users.Add(request);
-                        Console.WriteLine(ep.Address + ": User with ID " + request.id + " is now in the database!\n");
+                        Console.WriteLine(ipendp.Address + ": User with ID " + request.id + " is now in the database!\n");
 
                         /* Acknowledgement: send same package back */
                         serializer = new XmlSerializer(typeof(Data));
@@ -117,13 +119,13 @@ namespace VerificationCenter
                         stream.Close();
                     }
 
-                    /* request from Alice (wants the w's of Bob) */                    
+                    /* request from Alice (wants the w's of Bob) */
                     else
                     {
                         foreach (Data data in users)
                         {
                             if (request.id == data.id)
-                            { 
+                            {
                                 /* get the w's of Bob */
                             }
                         }

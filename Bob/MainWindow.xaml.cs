@@ -47,15 +47,15 @@ namespace Bob
         {
             try
             {
-                address = IPAddress.Parse(tbx_ip.Text);
+                address = IPAddress.Parse(tbx_ip1.Text);
             }
             catch
             {
-                tbx_ip.Text = "";
+                tbx_ip1.Text = "";
                 MessageBox.Show("Please enter a valid IP address!");
                 return;
             }
-            tbx_ip.Text = "";
+            tbx_ip1.Text = "";
 
             random = new Random();
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -102,7 +102,7 @@ namespace Bob
             {
                 btn_send.IsEnabled = false;
                 btn_authentification.IsEnabled = true;
-                tbx_ip.IsEnabled = false;
+                tbx_ip1.IsEnabled = false;
                 lbl_id.Content += id.ToString();
             }
 
@@ -111,6 +111,31 @@ namespace Bob
                 MessageBox.Show("Unbekannter Fehler");
                 return;
             }
+        }
+
+        private void btn_authentification_Click(object sender, RoutedEventArgs e)
+        {
+            /* send authenitification request to Alice */
+            try
+            {
+                address = IPAddress.Parse(tbx_ip2.Text);
+            }
+            catch
+            {
+                tbx_ip2.Text = "";
+                MessageBox.Show("Please enter a valid IP address!");
+                return;
+            }
+            tbx_ip2.Text = "";
+
+            /* setup request */
+            endp = new IPEndPoint(address, PORT);
+            stream = new MemoryStream();
+            Data request = new Data { id = id, k = 0, n = null, t = 0, w = null };
+            serializer.Serialize(stream, request);
+            /* send request */
+            socket.SendTo(stream.ToArray(), endp);
+            stream.Close();
         }
 
         private void InitValuesForIdentification(BigInteger n, out int id, out string[] w, int k, int t)
@@ -188,7 +213,7 @@ namespace Bob
             y = dX - x * BigInteger.DivRem(a, b, out remainder);
             /* updating ggT */
             ggT = a * x + b * y;
-        }
+        }        
     }
 
     [Serializable]
