@@ -101,20 +101,33 @@ namespace VerificationCenter
                 /* already has variables and has now sent the w's */
                 else
                 {
-                    /* Entscheidung, ob request von Alice (nur ID) oder von Bob (mit w's) */
+                    /* request from Bob */
+                    if (request.w != null)
+                    {
+                        users.Add(request);
+                        Console.WriteLine(ep.Address + ": User with ID " + request.id + " is now in the database!\n");
 
+                        /* Acknowledgement: send same package back */
+                        serializer = new XmlSerializer(typeof(Data));
+                        stream = new MemoryStream();
+                        serializer.Serialize(stream, request);
 
-                    users.Add(request);
-                    Console.WriteLine(ep.Address + ": User with ID " + request.id + " is now in the database!\n");
+                        /* send ACK */
+                        socket.SendTo(stream.ToArray(), endp);
+                        stream.Close();
+                    }
 
-                    /* Acknowledgement: send same package back */
-                    serializer = new XmlSerializer(typeof(Data));
-                    stream = new MemoryStream();
-                    serializer.Serialize(stream, request);
-
-                    /* send ACK */
-                    socket.SendTo(stream.ToArray(), endp);
-                    stream.Close();
+                    /* request from Alice (wants the w's of Bob) */                    
+                    else
+                    {
+                        foreach (Data data in users)
+                        {
+                            if (request.id == data.id)
+                            { 
+                                /* get the w's of Bob */
+                            }
+                        }
+                    }
                 }                
             }
         }
