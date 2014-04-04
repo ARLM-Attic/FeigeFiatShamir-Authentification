@@ -65,12 +65,13 @@ namespace VerificationCenter
 
             /* calculating n */
             n = p * q;
-            return new Data { id = 0, k = k, n = n, t = t, w = null };
+            return new Data { id = 0, k = k, n = n.ToString(), t = t, w = null };
         }
 
         static void ReceiveRequests()
         {
             Console.WriteLine("Waiting for requests...\n");
+            users = new List<Data>();
 
             while (true)
             {
@@ -100,13 +101,17 @@ namespace VerificationCenter
                 /* already has variables and has now sent the w's */
                 else
                 {
+                    /* Entscheidung, ob request von Alice (nur ID) oder von Bob (mit w's) */
+
+
                     users.Add(request);
-                    Console.WriteLine(ep.Address + ": Requested verification");
+                    Console.WriteLine(ep.Address + ": User with ID " + request.id + " is now in the database!\n");
 
                     /* Acknowledgement: send same package back */
                     serializer = new XmlSerializer(typeof(Data));
                     stream = new MemoryStream();
                     serializer.Serialize(stream, request);
+
                     /* send ACK */
                     socket.SendTo(stream.ToArray(), endp);
                     stream.Close();
@@ -162,11 +167,17 @@ namespace VerificationCenter
     public class Data
     {
         public int id { get; set; }
-
-        /* BigInteger lassen sich ohne Vorkehrungen nicht serialisieren (kommt immer 0 raus) --> Möglichkeit wäre über Strings... */
-        public BigInteger n { get; set; }
-        public BigInteger[] w { get; set; }
+        /* BigInteger is not serializable --> Parse to String */
+        public string n { get; set; }
+        public string[] w { get; set; }
         public int k { get; set; }
         public int t { get; set; }
+
+        public bool Compare(Data obj)
+        {
+            if (id == obj.id && n == obj.n && w == obj.w && k == obj.k && t == obj.t)
+                return true;
+            return false;
+        }
     }
 }

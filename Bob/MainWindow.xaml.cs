@@ -23,16 +23,20 @@ namespace Bob
 {
     public partial class MainWindow : Window
     {
+        /* Network stuff */
         IPAddress address;
         EndPoint endp;
         Socket socket;
-        Data data;
         Random random;
         XmlSerializer serializer;
         MemoryStream stream;
-        int id;
-        BigInteger[] w;
         const int PORT = 5555;
+        byte[] buffer;
+
+        /* Feige-Fiat-Shamir stuff */
+        int id, k, t;
+        BigInteger n;
+        string[] w;        
 
         public MainWindow()
         {
@@ -51,6 +55,7 @@ namespace Bob
                 MessageBox.Show("Please enter a valid IP address!");
                 return;
             }
+            tbx_ip.Text = "";
 
             random = new Random();
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -60,35 +65,62 @@ namespace Bob
             serializer = new XmlSerializer(typeof(Data));
             stream = new MemoryStream();
             /* if the id is set to 0, the authentification server knows its a request */
-            serializer.Serialize(stream, new Data { id = 0, k = 1, n = 2, t = 3, w = null });
+            serializer.Serialize(stream, new Data { id = 0, k = 0, n = null, t = 0, w = null });
 
             /* send request */
             socket.SendTo(stream.ToArray(), endp);
             stream.Close();
 
-            /* get response */
-            byte[] buffer = new byte[1024];
+            /* get response with n, k and t in it */
+            buffer = new byte[1024];
             socket.ReceiveFrom(buffer, ref endp);
             stream = new MemoryStream(buffer);
             Data response = (Data)serializer.Deserialize(stream);
+            /* initialize n, k and t */
+            n = BigInteger.Parse(response.n);
+            k = response.k;
+            t = response.t;
             stream.Close();
 
-            /* if received package is ok... */
-            btn_send.IsEnabled = false;
-
             /* send the calculated w's */
-            InitValuesForIdentification(response.n, out id, out w, response.k, response.t);
+            InitValuesForIdentification(n, out id, out w, k, t);
+            stream = new MemoryStream();
+            Data data_w = new Data { id = id, k = 0, n = null, t = 0, w = w };
+            serializer.Serialize(stream, data_w);
+            socket.SendTo(stream.ToArray(), endp);
+            stream.Close();
+
+            /* wait for the acknowledgement (has to be the same packet) */
+            buffer = new byte[1024];
+            socket.ReceiveFrom(buffer, ref endp);
+            stream = new MemoryStream(buffer);
+            response = (Data)serializer.Deserialize(stream);
+            stream.Close();
+
+            /* comparing the objects */
+            if (response.Compare(data_w))
+            {
+                btn_send.IsEnabled = false;
+                btn_authentification.IsEnabled = true;
+                tbx_ip.IsEnabled = false;
+                lbl_id.Content += id.ToString();
+            }
+
+            else
+            {
+                MessageBox.Show("Unbekannter Fehler");
+                return;
+            }
         }
 
-        private void InitValuesForIdentification(BigInteger n, out int id, out BigInteger[] w, int k, int t)
+        private void InitValuesForIdentification(BigInteger n, out int id, out string[] w, int k, int t)
         {
-            BigInteger[] s;
+            BigInteger[] s = new BigInteger[k];
+            BigInteger[] wBig = new BigInteger[k];
+            w = new string[k];
+
             /* binary vektor for the sign */
             byte c = (byte)random.Next(-128, 127);
-
-            /* calculating elements of s and w */
-            s = new BigInteger[k];
-            w = new BigInteger[k];
 
             int length = n.ToByteArray().Length;
             byte[] tmp = new byte[length];
@@ -109,12 +141,17 @@ namespace Bob
                 }
 
                 if ((c & (1 << i)) != 0)
-                    w[i] = BigInteger.Pow(-1, i) * s[i];
+                    wBig[i] = BigInteger.Pow(-1, i) * s[i];
 
                 else
-                    w[i] = s[i];
+                    wBig[i] = s[i];
             }
+            /* generate the ID */
             id = random.Next();
+
+            /* convert the BigInteger values to String */
+            for (int i = 0; i < k; i++)
+                w[i] = wBig[i].ToString();
         }
 
         private BigInteger GetInverseElement(BigInteger n, BigInteger s)
@@ -158,9 +195,17 @@ namespace Bob
     public class Data
     {
         public int id { get; set; }
-        public BigInteger n { get; set; }
-        public BigInteger[] w { get; set; }
+        /* BigInteger is not serializable --> Parse to String */
+        public string n { get; set; }
+        public string[] w { get; set; }
         public int k { get; set; }
-        public int t { get; set; }       
+        public int t { get; set; }
+
+        public bool Compare(Data obj)
+        {
+            if (id == obj.id && n == obj.n && w.SequenceEqual(obj.w) && k == obj.k && t == obj.t)
+                return true;
+            return false;
+        }
     }
 }

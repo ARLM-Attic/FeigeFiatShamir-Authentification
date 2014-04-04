@@ -11,3 +11,16 @@ C:\Users\Christoph\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Deb
 C:\Users\Christoph\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.csproj.GenerateResource.Cache
 C:\Users\Christoph\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.exe
 C:\Users\Christoph\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.pdb
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\bin\Debug\Bob.exe.config
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\bin\Debug\Bob.exe
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\bin\Debug\Bob.pdb
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.csprojResolveAssemblyReference.cache
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\MainWindow.baml
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\MainWindow.g.cs
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\App.g.cs
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob_MarkupCompile.cache
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.g.resources
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.Properties.Resources.resources
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.csproj.GenerateResource.Cache
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.exe
+C:\Users\schueler\Documents\GitHub\FeigeFiatShamir-Authentification\Bob\obj\Debug\Bob.pdb

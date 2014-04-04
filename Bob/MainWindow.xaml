@@ -1,13 +1,15 @@
 ﻿<Window x:Class="Bob.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Bob" Height="231.334" Width="427.667">
+        Title="Bob" Height="211.334" Width="427.667">
     <Grid>
         <Label Content="IP of the authentification center :" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="tbx_ip" HorizontalAlignment="Left" Height="23" Margin="193,13,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Text="127.0.0.1"/>
         <Button x:Name="btn_send" Content="Send" HorizontalAlignment="Left" Margin="324,13,0,0" VerticalAlignment="Top" Width="80" Height="23" Click="btn_send_Click"/>
-        <Label x:Name="lbl_id" Content="YOUR ID :" HorizontalAlignment="Left" Margin="10,47,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="lbl_id" Content="YOUR ID : " HorizontalAlignment="Left" Margin="10,47,0,0" VerticalAlignment="Top"/>
         <GroupBox Header="" HorizontalAlignment="Left" Margin="0,36,0,0" VerticalAlignment="Top" Height="37" Width="193" Visibility="Hidden"/>
-        <Button x:Name="btn_authentification" Content="Authentification" HorizontalAlignment="Left" Margin="132,94,0,0" VerticalAlignment="Top" Width="142" Height="42" IsEnabled="False"/>
+        <Button x:Name="btn_authentification" Content="Authentification" HorizontalAlignment="Left" Margin="262,93,0,0" VerticalAlignment="Top" Width="142" Height="42" IsEnabled="False"/>
+        <Label Content="IP of Alice :" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbx_ip_Copy" HorizontalAlignment="Left" Height="23" Margin="84,103,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Text="127.0.0.1"/>
     </Grid>
 </Window>
