@@ -23,6 +23,7 @@ namespace VerificationCenter
         static XmlSerializer serializer;
         static MemoryStream stream;
         static Random random;
+        /* PORT PROBLEM (kann nicht den selben für beide (Alice und VC) verwenden... */
         const int PORT = 5555;
         const int k = 8;
         const int t = 3;

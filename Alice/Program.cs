@@ -21,6 +21,7 @@ namespace Alice
         static Thread thread;
         static MemoryStream stream;
         static XmlSerializer serializer;
+        /* PORT PROBLEM (kann nicht den selben für beide (Alice und VC) verwenden... */
         const int PORT = 5555;
      
         /* Feige-Fiat-Shamir stuff */
