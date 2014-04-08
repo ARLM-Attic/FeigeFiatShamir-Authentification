@@ -29,9 +29,10 @@ namespace Alice
         static void Main(string[] args)
         {
             Console.Title = "Alice";
+
             socketBob = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             socketVC = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            /* listen on port 5555 */
+
             socketBob.Bind(new IPEndPoint(IPAddress.Any, PORT_BOB));
             socketVC.Bind(new IPEndPoint(IPAddress.Any, PORT_VC));
 
@@ -77,7 +78,15 @@ namespace Alice
         {
             while (true)
             {
-                /* get the w' of Bob */
+                EndPoint endp = new IPEndPoint(IPAddress.Any, 0);
+
+                /* get the w's of Bob from VC */
+                serializer = new XmlSerializer(typeof(Data));
+                byte[] buffer = new byte[1024];
+                socketVC.ReceiveFrom(buffer, ref endp);
+                stream = new MemoryStream(buffer);
+                Data bob = (Data)serializer.Deserialize(stream);
+                stream.Close();
             }
         }
     }

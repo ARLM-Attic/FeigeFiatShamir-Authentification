@@ -16,6 +16,7 @@ namespace VerificationCenter
 {
     class Program
     {
+        /* network stuff */
         static Socket socketAlice, socketBob;
         static Thread thread;
         static Data data;
@@ -23,6 +24,7 @@ namespace VerificationCenter
         static XmlSerializer serializer;
         static MemoryStream stream;
         static Random random;
+        /* constants */
         const int PORT_ALICE = 5557;
         const int PORT_BOB = 5556;
         const int k = 8;
@@ -144,9 +146,14 @@ namespace VerificationCenter
                 {
                     if (request.id == data.id)
                     {
-                        /* get the w's of Bob */
+                        /* get the w's of Bob */                        
+                        serializer = new XmlSerializer(typeof(Data));
+                        stream = new MemoryStream();
+                        serializer.Serialize(stream, data);
 
-                        /* send the w's to Alice */
+                        /* send w's to Alice */
+                        socketAlice.SendTo(stream.ToArray(), new IPEndPoint(((IPEndPoint)endp).Address, 5554));
+                        stream.Close();
                     }
                 }
             }
