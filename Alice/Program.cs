@@ -49,7 +49,7 @@ namespace Alice
 
         private static void ReceiveFromBob()
         {
-            Console.WriteLine("Waiting for connections...");
+            Console.WriteLine("Waiting for connections...\n");
 
             while (true)
             {
@@ -71,6 +71,7 @@ namespace Alice
                 stream = new MemoryStream();
                 serializer.Serialize(stream, request);
                 socketBob.SendTo(stream.ToArray(), new IPEndPoint(IPAddress.Parse(IP_VC), 5557));
+                stream.Close();
             }
         }
 
@@ -86,6 +87,16 @@ namespace Alice
                 socketVC.ReceiveFrom(buffer, ref endp);
                 stream = new MemoryStream(buffer);
                 Data bob = (Data)serializer.Deserialize(stream);
+                stream.Close();
+
+                IPEndPoint ipendp = (IPEndPoint)endp;
+                Console.WriteLine(ipendp.Address + ": Got the w's from user with ID " + bob.id + "!");
+
+                /* Alice tells Bob that she has his w's and that he can now send his v's */
+                serializer = new XmlSerializer(typeof(Data));
+                stream = new MemoryStream();
+                serializer.Serialize(stream, bob);                
+                //socketBob.SendTo(stream.ToArray(), new IPEndPoint(IPAddress.Parse(IP_VC), 5557));
                 stream.Close();
             }
         }
