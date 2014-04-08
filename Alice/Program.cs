@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Numerics;
 using System.Threading;
-using System.Numerics;
 using System.Xml.Serialization;
 using System.IO;
 
@@ -16,62 +15,69 @@ namespace Alice
     class Program
     {
         /* Network stuff */
-        static Socket socket;
+        static Socket socketBob, socketVC;
         static EndPoint endp;
         static Thread thread;
         static MemoryStream stream;
         static XmlSerializer serializer;
-        /* PORT PROBLEM (kann nicht den selben für beide (Alice und VC) verwenden... */
-        const int PORT = 5555;
-     
+        /* constants */
+        const string IP_VC = "127.0.0.1";
+        const int PORT_BOB = 5555;
+        const int PORT_VC = 5554;
         /* Feige-Fiat-Shamir stuff */
 
         static void Main(string[] args)
         {
             Console.Title = "Alice";
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            socketBob = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            socketVC = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             /* listen on port 5555 */
-            socket.Bind(new IPEndPoint(IPAddress.Any, PORT));                   
+            socketBob.Bind(new IPEndPoint(IPAddress.Any, PORT_BOB));
+            socketVC.Bind(new IPEndPoint(IPAddress.Any, PORT_VC));
 
-            thread = new Thread(ReceiveRequests);
+            thread = new Thread(ReceiveFromBob);
+            thread.IsBackground = true;
+            thread.Start();
+
+            thread = new Thread(ReceiveFromVC);
             thread.IsBackground = true;
             thread.Start();
 
             Console.ReadLine();
         }
 
-        private static void ReceiveRequests()
+        private static void ReceiveFromBob()
         {
             Console.WriteLine("Waiting for connections...");
 
             while (true)
             {
+                EndPoint endp = new IPEndPoint(IPAddress.Any, 0);
+
                 /* check if valid Data object */
                 serializer = new XmlSerializer(typeof(Data));
                 byte[] buffer = new byte[1024];
-                socket.ReceiveFrom(buffer, ref endp);
+                socketBob.ReceiveFrom(buffer, ref endp);
                 stream = new MemoryStream(buffer);
                 Data request = (Data)serializer.Deserialize(stream);
                 stream.Close();
 
                 IPEndPoint ipendp = (IPEndPoint)endp;
-                /* request for authentification from Bob (w == null) */
-                if (request.w == null)
-                {
-                    Console.WriteLine(ipendp.Address + ": Requested authentification");
+                Console.WriteLine(ipendp.Address + ": Requested authentification");
 
-                    /* send request for w's to the authentification center */
-                    serializer = new XmlSerializer(typeof(Data));
-                    stream = new MemoryStream();
-                    serializer.Serialize(stream, request);
-                    socket.SendTo(stream.ToArray(), endp);
-                }
+                /* send request for w's to the authentification center */
+                serializer = new XmlSerializer(typeof(Data));
+                stream = new MemoryStream();
+                serializer.Serialize(stream, request);
+                socketBob.SendTo(stream.ToArray(), new IPEndPoint(IPAddress.Parse(IP_VC), 5557));
+            }
+        }
 
-                /* response from verifcation center with w's of Bob */ 
-                else
-                {
-                    
-                }  
+        private static void ReceiveFromVC()
+        {
+            while (true)
+            {
+                /* get the w' of Bob */
             }
         }
     }

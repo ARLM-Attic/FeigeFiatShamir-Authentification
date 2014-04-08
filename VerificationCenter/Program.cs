@@ -16,15 +16,15 @@ namespace VerificationCenter
 {
     class Program
     {
-        static Socket socket;
+        static Socket socketAlice, socketBob;
         static Thread thread;
         static Data data;
         static List<Data> users;
         static XmlSerializer serializer;
         static MemoryStream stream;
         static Random random;
-        /* PORT PROBLEM (kann nicht den selben für beide (Alice und VC) verwenden... */
-        const int PORT = 5555;
+        const int PORT_ALICE = 5557;
+        const int PORT_BOB = 5556;
         const int k = 8;
         const int t = 3;
 
@@ -35,10 +35,17 @@ namespace VerificationCenter
             random = new Random();
             data = InitValues();
 
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            socket.Bind(new IPEndPoint(IPAddress.Any, PORT));
+            socketAlice = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            socketBob = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-            thread = new Thread(ReceiveRequests);
+            socketAlice.Bind(new IPEndPoint(IPAddress.Any, PORT_ALICE));
+            socketBob.Bind(new IPEndPoint(IPAddress.Any, PORT_BOB));
+
+            thread = new Thread(ReceiveFromBob);
+            thread.IsBackground = true;
+            thread.Start();
+
+            thread = new Thread(ReceiveFromAlice);
             thread.IsBackground = true;
             thread.Start();
 
@@ -71,7 +78,7 @@ namespace VerificationCenter
             return new Data { id = 0, k = k, n = n.ToString(), t = t, w = null };
         }
 
-        static void ReceiveRequests()
+        static void ReceiveFromBob()
         {
             Console.WriteLine("Waiting for requests...\n");
             users = new List<Data>();
@@ -83,7 +90,7 @@ namespace VerificationCenter
                 /* check if valid Data object */
                 serializer = new XmlSerializer(typeof(Data));
                 byte[] buffer = new byte[1024];
-                socket.ReceiveFrom(buffer, ref endp);
+                socketBob.ReceiveFrom(buffer, ref endp);
                 stream = new MemoryStream(buffer);
                 Data request = (Data)serializer.Deserialize(stream);
                 stream.Close();
@@ -97,41 +104,51 @@ namespace VerificationCenter
                     stream = new MemoryStream();
                     serializer.Serialize(stream, data);
                     /* send variables */
-                    socket.SendTo(stream.ToArray(), endp);
+                    socketBob.SendTo(stream.ToArray(), endp);
                     stream.Close();
                     Console.WriteLine(ipendp.Address + ": Requested variables");
                 }
-                /* already has variables and has now sent the w's */
+                /* Bob already has variables and has now sent the w's */
                 else
                 {
-                    /* request from Bob */
-                    if (request.w != null)
-                    {
-                        users.Add(request);
-                        Console.WriteLine(ipendp.Address + ": User with ID " + request.id + " is now in the database!\n");
+                    users.Add(request);
+                    Console.WriteLine(ipendp.Address + ": User with ID " + request.id + " is now in the database!\n");
 
-                        /* Acknowledgement: send same package back */
-                        serializer = new XmlSerializer(typeof(Data));
-                        stream = new MemoryStream();
-                        serializer.Serialize(stream, request);
+                    /* Acknowledgement: send same package back */
+                    serializer = new XmlSerializer(typeof(Data));
+                    stream = new MemoryStream();
+                    serializer.Serialize(stream, request);
 
-                        /* send ACK */
-                        socket.SendTo(stream.ToArray(), endp);
-                        stream.Close();
-                    }
-
-                    /* request from Alice (wants the w's of Bob) */
-                    else
-                    {
-                        foreach (Data data in users)
-                        {
-                            if (request.id == data.id)
-                            {
-                                /* get the w's of Bob */
-                            }
-                        }
-                    }
+                    /* send ACK */
+                    socketBob.SendTo(stream.ToArray(), endp);
+                    stream.Close();
                 }                
+            }
+        }
+
+        static void ReceiveFromAlice()
+        {           
+            while (true)
+            {
+                EndPoint endp = new IPEndPoint(IPAddress.Any, 0);
+
+                /* request from Alice (wants the w's of Bob) */
+                serializer = new XmlSerializer(typeof(Data));
+                byte[] buffer = new byte[1024];
+                socketAlice.ReceiveFrom(buffer, ref endp);
+                stream = new MemoryStream(buffer);
+                Data request = (Data)serializer.Deserialize(stream);
+                stream.Close();
+
+                foreach (Data data in users)
+                {
+                    if (request.id == data.id)
+                    {
+                        /* get the w's of Bob */
+
+                        /* send the w's to Alice */
+                    }
+                }
             }
         }
 

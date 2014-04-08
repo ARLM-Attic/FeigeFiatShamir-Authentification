@@ -30,7 +30,8 @@ namespace Bob
         Random random;
         XmlSerializer serializer;
         MemoryStream stream;
-        const int PORT = 5555;
+        const int PORT_VC = 5556;
+        const int PORT_ALICE = 5555;
         byte[] buffer;
 
         /* Feige-Fiat-Shamir stuff */
@@ -59,7 +60,7 @@ namespace Bob
 
             random = new Random();
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            endp = new IPEndPoint(address, PORT);
+            endp = new IPEndPoint(address, PORT_VC);
      
             /* setup the request */
             serializer = new XmlSerializer(typeof(Data));
@@ -129,7 +130,7 @@ namespace Bob
             tbx_ip2.Text = "";
 
             /* setup request */
-            endp = new IPEndPoint(address, PORT);
+            endp = new IPEndPoint(address, PORT_ALICE);
             stream = new MemoryStream();
             Data request = new Data { id = id, k = 0, n = null, t = 0, w = null };
             serializer.Serialize(stream, request);
