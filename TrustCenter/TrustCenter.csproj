@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{80D4B728-9AB9-4F83-A827-DCE9EF487EA7}</ProjectGuid>
+    <ProjectGuid>{5CB60D29-A5D8-4A93-AB3B-22F72F1C52B6}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VerificationCenter</RootNamespace>
-    <AssemblyName>VerificationCenter</AssemblyName>
+    <RootNamespace>TrustCenter</RootNamespace>
+    <AssemblyName>TrustCenter</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

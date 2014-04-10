@@ -6,36 +6,36 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using System.IO;
 
-namespace VerificationCenter
+namespace TrustCenter
 {
     class Program
     {
         /* network stuff */
         static Socket socketAlice, socketBob;
         static Thread thread;
-        static Data data;
         static List<Data> users;
         static XmlSerializer serializer;
         static MemoryStream stream;
         static Random random;
         /* constants */
-        const int PORT_ALICE = 5557;
-        const int PORT_BOB = 5556;
+        const int PORT_ALICE = 55557;
+        const int PORT_BOB = 55556;
         const int k = 8;
         const int t = 3;
+        /* Feige-Fiat-Shamir stuff */
+        static BigInteger n;
 
         static void Main(string[] args)
         {
-            Console.Title = "Verification Center";
+            Console.Title = "Trust Center";
 
             random = new Random();
-            data = InitValues();
+            n = InitModule();
 
             socketAlice = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             socketBob = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -54,7 +54,7 @@ namespace VerificationCenter
             Console.ReadLine();
         }
 
-        static Data InitValues()
+        static BigInteger InitModule()
         {
             BigInteger p, q, n;
             byte[] buffer = new byte[sizeof(UInt64)];
@@ -76,8 +76,7 @@ namespace VerificationCenter
             while (!MillerRabin(q) || !BlumNumber(q));
 
             /* calculating n */
-            n = p * q;
-            return new Data { id = 0, k = k, n = n.ToString(), t = t, w = null };
+            return n = p * q;
         }
 
         static void ReceiveFromBob()
@@ -91,7 +90,7 @@ namespace VerificationCenter
 
                 /* check if valid Data object */
                 serializer = new XmlSerializer(typeof(Data));
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[2048];
                 socketBob.ReceiveFrom(buffer, ref endp);
                 stream = new MemoryStream(buffer);
                 Data request = (Data)serializer.Deserialize(stream);
@@ -104,7 +103,7 @@ namespace VerificationCenter
                     /* serialize data object (has the variables in it) */
                     serializer = new XmlSerializer(typeof(Data));
                     stream = new MemoryStream();
-                    serializer.Serialize(stream, data);
+                    serializer.Serialize(stream, new Data { n = n.ToString(), k = k, t = t });
                     /* send variables */
                     socketBob.SendTo(stream.ToArray(), endp);
                     stream.Close();
@@ -146,13 +145,15 @@ namespace VerificationCenter
                 {
                     if (request.id == data.id)
                     {
+                        IPEndPoint ipendp = (IPEndPoint)endp;
+                        Console.WriteLine(ipendp.Address + ": Alice requested w's from user with ID " + request.id);
+
                         /* get the w's of Bob */                        
                         serializer = new XmlSerializer(typeof(Data));
                         stream = new MemoryStream();
-                        serializer.Serialize(stream, data);
-
+                        serializer.Serialize(stream, new Data { id = data.id, w = data.w, k = k, t = t, n = n.ToString() });
                         /* send w's to Alice */
-                        socketAlice.SendTo(stream.ToArray(), new IPEndPoint(((IPEndPoint)endp).Address, 5554));
+                        socketAlice.SendTo(stream.ToArray(), new IPEndPoint(ipendp.Address, 55554));
                         stream.Close();
                     }
                 }
@@ -209,13 +210,18 @@ namespace VerificationCenter
         public int id { get; set; }
         /* BigInteger is not serializable --> Parse to String */
         public string n { get; set; }
+        public string u { get; set; }
+        public string v { get; set; }
         public string[] w { get; set; }
         public int k { get; set; }
         public int t { get; set; }
+        /* binary vector */
+        public byte b { get; set; }
+        public bool LooksGoodForNow { get; set; }
 
         public bool Compare(Data obj)
         {
-            if (id == obj.id && n == obj.n && w == obj.w && k == obj.k && t == obj.t)
+            if (id == obj.id && n == obj.n && w.SequenceEqual(obj.w) && k == obj.k && t == obj.t)
                 return true;
             return false;
         }

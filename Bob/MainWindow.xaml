@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Bob" Height="211.334" Width="427.667">
     <Grid>
-        <Label Content="IP of the authentification center :" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <Label Content="IP of the verification center :" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="tbx_ip1" HorizontalAlignment="Left" Height="23" Margin="193,13,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Text="127.0.0.1"/>
         <Button x:Name="btn_send" Content="Send" HorizontalAlignment="Left" Margin="324,13,0,0" VerticalAlignment="Top" Width="80" Height="23" Click="btn_send_Click"/>
         <Label x:Name="lbl_id" Content="YOUR ID : " HorizontalAlignment="Left" Margin="10,47,0,0" VerticalAlignment="Top"/>

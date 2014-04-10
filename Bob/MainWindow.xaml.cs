@@ -25,18 +25,18 @@ namespace Bob
     {
         /* Network stuff */
         IPAddress address;
-        EndPoint endp;
         Socket socket;
         Random random;
         XmlSerializer serializer;
         MemoryStream stream;
-        const int PORT_VC = 5556;
-        const int PORT_ALICE = 5555;
+        const int PORT_TC = 55556;
+        const int PORT_ALICE = 55558;
         byte[] buffer;
 
         /* Feige-Fiat-Shamir stuff */
         int id, k, t;
         BigInteger n;
+        BigInteger[] s;
         string[] w;        
 
         public MainWindow()
@@ -60,20 +60,19 @@ namespace Bob
 
             random = new Random();
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            endp = new IPEndPoint(address, PORT_VC);
+            EndPoint endp = new IPEndPoint(address, PORT_TC);
      
             /* setup the request */
             serializer = new XmlSerializer(typeof(Data));
             stream = new MemoryStream();
-            /* if the id is set to 0, the authentification server knows its a request */
-            serializer.Serialize(stream, new Data { id = 0, k = 0, n = null, t = 0, w = null });
-
+            /* if the id is set to 0, the trust center knows its a request */
+            serializer.Serialize(stream, new Data { id = 0 });
             /* send request */
             socket.SendTo(stream.ToArray(), endp);
             stream.Close();
 
             /* get response with n, k and t in it */
-            buffer = new byte[1024];
+            buffer = new byte[2048];
             socket.ReceiveFrom(buffer, ref endp);
             stream = new MemoryStream(buffer);
             Data response = (Data)serializer.Deserialize(stream);
@@ -84,9 +83,9 @@ namespace Bob
             stream.Close();
 
             /* send the calculated w's */
-            InitValuesForIdentification(n, out id, out w, k, t);
+            InitValuesForIdentification(n, out s, out id, out w, k, t);
             stream = new MemoryStream();
-            Data data_w = new Data { id = id, k = 0, n = null, t = 0, w = w };
+            Data data_w = new Data { id = id, w = w };
             serializer.Serialize(stream, data_w);
             socket.SendTo(stream.ToArray(), endp);
             stream.Close();
@@ -109,14 +108,14 @@ namespace Bob
 
             else
             {
-                MessageBox.Show("Unbekannter Fehler");
+                MessageBox.Show("Unknown error!");
                 return;
             }
         }
 
         private void btn_authentification_Click(object sender, RoutedEventArgs e)
         {
-            /* send authenitification request to Alice */
+            /* send authentification request to Alice */
             try
             {
                 address = IPAddress.Parse(tbx_ip2.Text);
@@ -130,23 +129,87 @@ namespace Bob
             tbx_ip2.Text = "";
 
             /* setup request */
-            endp = new IPEndPoint(address, PORT_ALICE);
             stream = new MemoryStream();
-            Data request = new Data { id = id, k = 0, n = null, t = 0, w = null };
-            serializer.Serialize(stream, request);
+            serializer.Serialize(stream, new Data { id = id });
             /* send request */
-            socket.SendTo(stream.ToArray(), endp);
+            socket.SendTo(stream.ToArray(), new IPEndPoint(address, 55553));
             stream.Close();
+
+            /* wait for the OK to send the v's */
+            buffer = new byte[2048];
+            EndPoint endp = new IPEndPoint(address, 55558);
+            socket.ReceiveFrom(buffer, ref endp);
+            stream = new MemoryStream(buffer);
+            Data ack = (Data)serializer.Deserialize(stream);
+            stream.Close();
+
+            for (int i = 0; i < t; i++)
+            {
+                byte[] tmp = new byte[n.ToByteArray().Length];
+                random.NextBytes(tmp);
+                BigInteger r = new BigInteger(tmp);
+                r = BigInteger.Abs(r) % n;
+                int bit = random.Next(0, 2);
+                BigInteger v;
+                /* calculate v */
+                if (bit == 0)
+                    v = BigInteger.ModPow(r, 2, n);
+                else
+                    v = BigInteger.ModPow(-r, 2, n);
+
+                /* send v */
+                stream = new MemoryStream();
+                serializer.Serialize(stream, new Data { v = v.ToString() });
+                socket.SendTo(stream.ToArray(), endp);
+                stream.Close();
+
+                /* get the binary vector */
+                buffer = new byte[2048];
+                socket.ReceiveFrom(buffer, ref endp);
+                stream = new MemoryStream(buffer);
+                Data b = (Data)serializer.Deserialize(stream);
+                stream.Close();
+
+                /* calculating u */
+                BigInteger u = r;
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((b.b & (1 << j)) != 0)
+                        u = u * s[j] % n;
+                }
+
+                /* send u */
+                stream = new MemoryStream();
+                serializer.Serialize(stream, new Data { u = u.ToString() });
+                socket.SendTo(stream.ToArray(), endp);
+                stream.Close();
+
+                /* get the result */
+                buffer = new byte[2048];
+                socket.ReceiveFrom(buffer, ref endp);
+                stream = new MemoryStream(buffer);
+                Data res = (Data)serializer.Deserialize(stream);
+                stream.Close();
+
+                if (!res.LooksGoodForNow)
+                {
+                    MessageBox.Show("You are NOT authenticated!");
+                    break;
+                }
+
+                if (i == t - 1 && res.LooksGoodForNow)
+                    MessageBox.Show("You are authenticated!");
+            }
         }
 
-        private void InitValuesForIdentification(BigInteger n, out int id, out string[] w, int k, int t)
+        private void InitValuesForIdentification(BigInteger n, out BigInteger[] s, out int id, out string[] w, int k, int t)
         {
-            BigInteger[] s = new BigInteger[k];
+            s = new BigInteger[k];
             BigInteger[] wBig = new BigInteger[k];
             w = new string[k];
 
             /* binary vektor for the sign */
-            byte c = (byte)random.Next(-128, 127);
+            byte b = (byte)random.Next(-128, 127);
 
             int length = n.ToByteArray().Length;
             byte[] tmp = new byte[length];
@@ -163,14 +226,14 @@ namespace Bob
                     s[i] = new BigInteger(tmp);
                     s[i] = BigInteger.Abs(s[i]) % n;
 
-                    invElement = GetInverseElement(n, (s[i] << 2) % n);
+                    invElement = GetInverseElement(s[i] * s[i], n);
                 }
 
-                if ((c & (1 << i)) != 0)
-                    wBig[i] = BigInteger.Pow(-1, i) * s[i];
+                if ((b & (1 << i)) != 0)
+                    wBig[i] = BigInteger.Pow(-1, i) * invElement;
 
                 else
-                    wBig[i] = s[i];
+                    wBig[i] = invElement;
             }
             /* generate the ID */
             id = random.Next();
@@ -180,41 +243,35 @@ namespace Bob
                 w[i] = wBig[i].ToString();
         }
 
-        private BigInteger GetInverseElement(BigInteger n, BigInteger s)
+        private static BigInteger GetInverseElement(BigInteger a, BigInteger b)
         {
-            BigInteger ggT, x, y;
+            BigInteger dividend = a % b;
+            BigInteger divisor = b;
 
-            Euklid(n, s, out ggT, out x, out y);
+            BigInteger last_x = BigInteger.One;
+            BigInteger curr_x = BigInteger.Zero;
 
-            /* error: ggT has to be 1 */
-            if (ggT != 1)
-                return 0;
-
-            /* y is our inverse element, because (y * s) mod n equals 1 */
-            return y;
-        }
-
-        private void Euklid(BigInteger a, BigInteger b, out BigInteger ggT, out BigInteger x, out BigInteger y)
-        {
-            if (a % b == 0)
+            while (divisor.Sign > 0)
             {
-                x = 0;
-                y = 1;
-                ggT = b * y;
-                return;
+                BigInteger quotient = dividend / divisor;
+                BigInteger remainder = dividend % divisor;
+                if (remainder.Sign <= 0)
+                    break;
+
+                BigInteger next_x = last_x - curr_x * quotient;
+                last_x = curr_x;
+                curr_x = next_x;
+
+                dividend = divisor;
+                divisor = remainder;
             }
 
-            BigInteger dX, dY, remainder;
-            /* repeatedly call the function till a % b equals 0 */
-            Euklid(b, a % b, out ggT, out dX, out dY);
+            /* error: ggT has to be 1 */
+            if (divisor != 1)
+                return 0;
 
-            /* dY is our first coefficient */
-            x = dY;
-            /* calculating the second coefficient */
-            y = dX - x * BigInteger.DivRem(a, b, out remainder);
-            /* updating ggT */
-            ggT = a * x + b * y;
-        }        
+            return (curr_x.Sign < 0 ? curr_x + b : curr_x);
+        }
     }
 
     [Serializable]
@@ -223,9 +280,14 @@ namespace Bob
         public int id { get; set; }
         /* BigInteger is not serializable --> Parse to String */
         public string n { get; set; }
+        public string u { get; set; }
+        public string v { get; set; }
         public string[] w { get; set; }
         public int k { get; set; }
         public int t { get; set; }
+        /* binary vector */
+        public byte b { get; set; }
+        public bool LooksGoodForNow { get; set; }
 
         public bool Compare(Data obj)
         {

@@ -1,0 +1,6 @@
+C:\Users\Christoph\Documents\GitHub\FeigeFiatShamir-Authentification\TrustCenter\bin\Debug\TrustCenter.exe.config
+C:\Users\Christoph\Documents\GitHub\FeigeFiatShamir-Authentification\TrustCenter\bin\Debug\TrustCenter.exe
+C:\Users\Christoph\Documents\GitHub\FeigeFiatShamir-Authentification\TrustCenter\bin\Debug\TrustCenter.pdb
+C:\Users\Christoph\Documents\GitHub\FeigeFiatShamir-Authentification\TrustCenter\obj\Debug\TrustCenter.exe
+C:\Users\Christoph\Documents\GitHub\FeigeFiatShamir-Authentification\TrustCenter\obj\Debug\TrustCenter.pdb
+C:\Users\Christoph\Documents\GitHub\FeigeFiatShamir-Authentification\TrustCenter\obj\Debug\TrustCenter.csprojResolveAssemblyReference.cache
